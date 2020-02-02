@@ -57,6 +57,7 @@ export default class ScoreButton extends Vue {
 $color: black;
 $accent: tomato;
 $stroke: 10px;
+$button-di: 60px;
 $time: 150ms;
 $ease: ease-in-out;
 $circle-diameter: 70;
@@ -73,6 +74,12 @@ button {
   border-radius: 50%;
   cursor: pointer;
   display: block;
+  height: $button-di * 0.7;
+  width: $button-di * 0.7;
+  @media (min-height: 660px), (min-width: 660px) {
+    width: $button-di;
+    height: $button-di;
+  }
   outline: none;
   padding: 0;
   position: relative;

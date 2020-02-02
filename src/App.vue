@@ -2,12 +2,13 @@
   <div id="app">
     <div class="board">
       <div class="row header">
-        <div class="col-half" :class="{ winner: gameOver && winner !== 'B' }">
-          <span>A</span><span>{{ scores.A }}</span>
+        <div class="col-flex" :class="{ winner: gameOver && winner !== 'B' }">
+          <span>A</span>
+          <span>{{ scores.A }}</span>
         </div>
-        <div class="col-half" :class="{ winner: gameOver && winner !== 'A' }">
-          <span>{{ scores.B }}</span
-          ><span>B</span>
+        <div class="col-flex" :class="{ winner: gameOver && winner !== 'A' }">
+          <span>{{ scores.B }}</span>
+          <span>B</span>
         </div>
       </div>
       <div
@@ -16,17 +17,17 @@
         class="row"
         :class="{ closed: closed[key] }"
       >
-        <div class="col-small">
+        <div class="col">
           <ScoreButton
             :closed="closed[key]"
             :onClick="() => hit('A', key)"
             :value="playerHits.A[key]"
           />
         </div>
-        <div class="col-center">
+        <div class="col-flex">
           <span class="hit" v-text="key" />
         </div>
-        <div class="col-small">
+        <div class="col">
           <ScoreButton
             :closed="closed[key]"
             :onClick="() => hit('B', key)"
@@ -35,8 +36,12 @@
         </div>
       </div>
       <div class="row footer">
-        <div class="col-half act-undo"><button @click="undo">UNDO</button></div>
-        <div class="col-half act-new"><button @click="clear">NEW</button></div>
+        <div class="col-flex act-undo">
+          <button @click="undo">UNDO</button>
+        </div>
+        <div class="col-flex act-new">
+          <button @click="clear">NEW</button>
+        </div>
       </div>
     </div>
   </div>
@@ -220,23 +225,28 @@ button {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
+  @media (min-height: 660px), (min-width: 660px) {
+    padding: 1rem;
+  }
+  box-sizing: border-box;
+  background: #fff;
 }
 .board {
   display: flex;
   flex-direction: column;
+  @media (orientation: landscape) {
+    flex-direction: row;
+  }
   font-weight: bold;
   height: 100%;
-  left: 50%;
-  max-height: 900px;
-  max-width: 450px;
-  position: absolute;
   text-align: center;
-  top: 50%;
-  transform: translate(-50%, -50%) translateZ(0);
   width: 100%;
   .row {
     background: white;
     display: flex;
+    @media (orientation: landscape) {
+      flex-direction: column;
+    }
     justify-content: space-between;
     transition: color 150ms ease-in-out;
     &.closed {
@@ -250,36 +260,39 @@ button {
     &:not(.header):not(.footer) {
       flex: 1;
     }
-    + .row {
-      border-top: $border solid #f0f0f0;
+    @media (orientation: landscape) {
+      flex: 1;
     }
-    .col-half,
-    .col-small,
-    .col-center {
+
+    + .row {
+      @media (orientation: portrait) {
+        border-top: $border solid #f0f0f0;
+      }
+      @media (orientation: landscape) {
+        border-left: $border solid #f0f0f0;
+      }
+    }
+    .col,
+    .col-flex {
       align-content: center;
+      align-items: center;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 0.25rem 0.5rem;
+      @media (orientation: portrait) {
+        padding: 0.25rem 0.5rem;
+      }
+      @media (orientation: landscape) {
+        padding: 0.5rem 0.5rem;
+      }
       > button,
       > span {
         display: block;
-        width: 100%;
       }
     }
-    .col-small {
-      width: 16%;
-    }
-    .col-half {
-      width: 50%;
-    }
-    .col-center {
-      align-content: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      width: 20%;
+    .col-flex {
+      flex: 1;
     }
     span.hit {
       font-size: $font-size-large;
@@ -294,22 +307,33 @@ button {
     background: black;
     color: white;
     font-weight: 900;
-    .col-half {
+    .col-flex {
       flex-direction: row;
       font-size: $font-size-large;
       padding: 1rem;
       &.winner {
         background: $accent;
       }
-      + .col-half {
-        border-left: $border solid white;
+      @media (orientation: landscape) {
+        flex-direction: column;
+        + .col-flex {
+          border-top: $border solid white;
+        }
+        span:last-child {
+          margin-top: auto;
+        }
       }
-      span:first-child {
-        text-align: left;
-      }
-      span:last-child {
-        margin-left: auto;
-        text-align: right;
+      @media (orientation: portrait) {
+        + .col-flex {
+          border-left: $border solid white;
+        }
+        span:first-child {
+          text-align: left;
+        }
+        span:last-child {
+          margin-left: auto;
+          text-align: right;
+        }
       }
     }
   }
@@ -333,11 +357,20 @@ button {
     .act-undo button {
       background: black;
     }
-    .act-new {
-      border-left: $border solid white;
+    @media (orientation: landscape) {
+      .act-new {
+        border-top: $border solid white;
+      }
+      button {
+        height: 100%;
+      }
+    }
+    @media (orientation: portrait) {
+      .act-new {
+        border-left: $border solid white;
+      }
     }
     .act-new button {
-      background: $accent;
       background: black;
     }
   }
