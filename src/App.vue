@@ -151,7 +151,8 @@ export default class App extends Vue {
 
   @Emit() clear(): void {
     if (!window.confirm('Are you sure you want a new game?')) return;
-    this.$set(this, 'playerHits', defaultPlayerHits);
+    this.$set(this.playerHits, 'A', Object.assign({}, defaultPlayerHits.A));
+    this.$set(this.playerHits, 'B', Object.assign({}, defaultPlayerHits.B));
     this.$set(this, 'timeline', []);
     this.save();
   }
