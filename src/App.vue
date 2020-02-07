@@ -82,7 +82,7 @@
           <button @click="undo">UNDO</button>
         </div>
         <div class="col act-setting">
-          <button @click="settings">•</button>
+          <button @click="settings">•••</button>
         </div>
         <div class="col-flex act-new">
           <button @click="clear">NEW</button>
