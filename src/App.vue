@@ -470,10 +470,9 @@ button {
   }
 }
 .settings {
-  background: var(--color1);
+  background: var(--color2);
   box-sizing: border-box;
-  color: var(--color2);
-  font-size: $font-size-large;
+  color: var(--color1);
   font-weight: bold;
   height: 100%;
   left: 0;
@@ -485,6 +484,7 @@ button {
   width: 100%;
   z-index: 9;
   p {
+    font-size: $font-size-large;
     line-height: 3rem;
     margin: 0 0 1rem;
   }
@@ -502,7 +502,7 @@ button {
     }
     display: block;
     background: var(--accent);
-    color: var(--color1);
+    color: var(--color2);
     font-size: 1.5rem;
     height: 3rem;
     width: 3rem;
