@@ -54,8 +54,6 @@ export default class ScoreButton extends Vue {
   @return sqrt($x * $x + $y * $y);
 }
 
-$color: black;
-$accent: tomato;
 $stroke: 10px;
 $button-di: 60px;
 $time: 150ms;
@@ -72,6 +70,7 @@ button {
   border: none;
   overflow: visible;
   border-radius: 50%;
+  color: var(--color1);
   cursor: pointer;
   display: block;
   height: $button-di * 0.7;
@@ -89,7 +88,7 @@ button {
     vertical-align: middle;
   }
   &.value-X {
-    color: white;
+    color: var(--color2);
     cursor: default;
   }
   span {
@@ -133,7 +132,7 @@ circle {
 .circle-2 {
   stroke: transparent;
   .value-0 & {
-    stroke: #f0f0f0;
+    stroke: var(--color3);
   }
   .value-4 & {
     stroke: currentColor;
@@ -147,12 +146,11 @@ circle {
     stroke: transparent;
   }
   span {
-    color: $accent;
-    color: $color;
+    color: var(--color1);
   }
   .display .circle-2 {
     fill: currentColor;
-    stroke: $color;
+    stroke: var(--color1);
   }
 }
 
