@@ -2,43 +2,48 @@
   <div id="app" :style="theme">
     <div class="settings" :class="{ active: openSettings }">
       <button @click="settings" class="close"></button>
-      <p>Theme</p>
-      <ul class="themes">
-        <li
-          v-for="(theme, i) in themes"
-          :key="i"
-          :class="{ active: i === themeIdx }"
-          @click="() => selectTheme(i)"
-        >
-          <span
-            v-for="(color, j) in Object.values(theme)"
-            :key="j"
-            :style="{ background: color }"
-          ></span>
-        </li>
-      </ul>
-      <br />
-      <p>Theme Preview</p>
-      <div class="row">
-        <div class="col">
-          <ScoreButton :closed="false" :onClick="() => {}" :value="1" />
-        </div>
-        <div class="col-flex">
-          <span class="hit" v-text="'B'" />
-        </div>
-        <div class="col">
-          <ScoreButton :closed="false" :onClick="() => {}" :value="3" />
-        </div>
+      <div>
+        <p>Theme</p>
+        <ul class="themes">
+          <li
+            v-for="(theme, i) in themes"
+            :key="i"
+            :class="{ active: i === themeIdx }"
+            @click="() => selectTheme(i)"
+          >
+            <span
+              v-for="(color, j) in Object.values(theme)"
+              :key="j"
+              :style="{ background: color }"
+            ></span>
+          </li>
+        </ul>
       </div>
-      <div class="row closed">
-        <div class="col">
-          <ScoreButton :closed="true" :onClick="() => {}" :value="4" />
-        </div>
-        <div class="col-flex">
-          <span class="hit" v-text="'B'" />
-        </div>
-        <div class="col">
-          <ScoreButton :closed="true" :onClick="() => {}" :value="1" />
+      <div>
+        <p>Preview</p>
+        <div class="row-examples">
+          <div class="row closed">
+            <div class="col">
+              <ScoreButton :closed="true" :onClick="() => {}" :value="4" />
+            </div>
+            <div class="col-flex">
+              <span class="hit" v-text="'B'" />
+            </div>
+            <div class="col">
+              <ScoreButton :closed="true" :onClick="() => {}" :value="1" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <ScoreButton :closed="false" :onClick="() => {}" :value="1" />
+            </div>
+            <div class="col-flex">
+              <span class="hit" v-text="'B'" />
+            </div>
+            <div class="col">
+              <ScoreButton :closed="false" :onClick="() => {}" :value="3" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -469,6 +474,7 @@ button {
     }
   }
 }
+
 .settings {
   background: var(--color2);
   box-sizing: border-box;
@@ -486,7 +492,7 @@ button {
   p {
     font-size: $font-size-large;
     line-height: 3rem;
-    margin: 0 0 1rem;
+    margin: 0 0 0rem;
   }
   &.active {
     transform: translateY(0);
@@ -513,10 +519,49 @@ button {
     right: 1rem;
     top: 1rem;
   }
+  display: flex;
+  flex-direction: column;
+  @media (orientation: portrait) {
+    > div + div {
+      margin-top: 1rem;
+    }
+  }
+  .row-examples {
+    display: flex;
+    flex-direction: column;
+    @media (orientation: landscape) {
+      flex-direction: row;
+      width: 100px;
+    }
+  }
+  @media (orientation: landscape) {
+    flex-direction: row;
+    > div {
+      .row-examples,
+      ul {
+        flex: 1;
+      }
+      ul {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: calc(50% - 0.5rem);
+      + div {
+        margin-left: 1rem;
+      }
+    }
+  }
   .themes {
     list-style: none;
     margin: 0;
     padding: 0;
+    @media (orientation: portrait) {
+      margin-top: 1rem;
+    }
     li {
       border: $border solid transparent;
       display: flex;
