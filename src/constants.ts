@@ -41,24 +41,6 @@ export const THEMES: Array<Theme> = [
     [THEME_COLOR2]: 'white',
     [THEME_COLOR3]: '#f0f0f0',
   },
-  // {
-  //   [THEME_ACCENT]: 'black',
-  //   [THEME_COLOR1]: 'black',
-  //   [THEME_COLOR2]: 'tomato',
-  //   [THEME_COLOR3]: '#191919',
-  // },
-  // {
-  //   [THEME_ACCENT]: 'black',
-  //   [THEME_COLOR1]: 'black',
-  //   [THEME_COLOR2]: 'hotpink',
-  //   [THEME_COLOR3]: '#191919',
-  // },
-  // {
-  //   [THEME_ACCENT]: 'black',
-  //   [THEME_COLOR1]: 'black',
-  //   [THEME_COLOR2]: '#ffbb00',
-  //   [THEME_COLOR3]: '#191919',
-  // },
   {
     [THEME_ACCENT]: 'tomato',
     [THEME_COLOR1]: 'tomato',

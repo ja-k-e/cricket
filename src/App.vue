@@ -1,52 +1,17 @@
 <template>
   <div id="app" :style="theme">
-    <div class="settings" :class="{ active: openSettings }">
-      <button @click="settings" class="close"></button>
-      <div>
-        <p>Theme</p>
-        <ul class="themes">
-          <li
-            v-for="(theme, i) in themes"
-            :key="i"
-            :class="{ active: i === themeIdx }"
-            @click="() => selectTheme(i)"
-          >
-            <span
-              v-for="(color, j) in Object.values(theme)"
-              :key="j"
-              :style="{ background: color }"
-            ></span>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <p>Preview</p>
-        <div class="row-examples">
-          <div class="row closed">
-            <div class="col">
-              <ScoreButton :closed="true" :onClick="() => {}" :value="4" />
-            </div>
-            <div class="col-flex">
-              <span class="hit" v-text="'B'" />
-            </div>
-            <div class="col">
-              <ScoreButton :closed="true" :onClick="() => {}" :value="1" />
-            </div>
-          </div>
-          <div class="row">
-            <div class="col">
-              <ScoreButton :closed="false" :onClick="() => {}" :value="1" />
-            </div>
-            <div class="col-flex">
-              <span class="hit" v-text="'B'" />
-            </div>
-            <div class="col">
-              <ScoreButton :closed="false" :onClick="() => {}" :value="3" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <GameOver
+      :active="gameOver && !seenWinner"
+      :close="closeGameOver"
+      :winner="winnerText"
+    />
+    <Settings
+      :active="openSettings"
+      :close="toggleSettings"
+      :select="selectTheme"
+      :themes="themes"
+      :theme-idx="themeIdx"
+    />
     <div class="board">
       <div class="row header">
         <div class="col-flex" :class="{ winner: gameOver && winner !== 'B' }">
@@ -87,7 +52,7 @@
           <button @click="undo">UNDO</button>
         </div>
         <div class="col act-setting">
-          <button @click="settings">•••</button>
+          <button @click="toggleSettings">•••</button>
         </div>
         <div class="col-flex act-new">
           <button @click="clear">NEW</button>
@@ -99,7 +64,9 @@
 
 <script lang="ts">
 import { Component, Emit, Vue } from 'vue-property-decorator';
+import GameOver from './components/GameOver.vue';
 import ScoreButton from './components/ScoreButton.vue';
+import Settings from './components/Settings.vue';
 import { defaultOrder, defaultPlayerHits } from './defaults';
 import {
   Closed,
@@ -132,13 +99,14 @@ import {
 } from './constants';
 
 @Component({
-  components: { ScoreButton },
+  components: { GameOver, ScoreButton, Settings },
 })
 export default class App extends Vue {
   version: string = '0.1';
   openSettings: boolean = false;
   order: ReadonlyArray<HitIdType> = defaultOrder;
   playerHits: PlayerHits = defaultPlayerHits;
+  seenWinner: boolean = false;
   timeline: Timeline = [];
   themes: Array<Theme> = THEMES;
   themeIdx: number = 0;
@@ -198,6 +166,11 @@ export default class App extends Vue {
     return this.winning;
   }
 
+  get winnerText(): string | null {
+    if (!this.winner) return null;
+    return this.winner === TIE ? TIE : `Player ${this.winner}`;
+  }
+
   get scores(): Scores {
     let a: number = 0;
     let b: number = 0;
@@ -228,16 +201,20 @@ export default class App extends Vue {
   }
 
   @Emit() clear(): void {
-    if (!window.confirm('Are you sure you want a new game?')) return;
-    for (let key in this.playerHits) {
-      this.$set(
-        this.playerHits,
-        key,
-        Object.assign({}, defaultPlayerHits[key as PlayerIdType])
-      );
+    if (window.confirm('Are you sure you want a new game?')) {
+      for (let key in this.playerHits) {
+        for (let k in this.playerHits[key as PlayerIdType]) {
+          this.$set(this.playerHits[key as PlayerIdType], k, 0);
+        }
+      }
+      this.seenWinner = false;
+      this.$set(this, 'timeline', []);
+      this.$nextTick(() => this.save());
     }
-    this.$set(this, 'timeline', []);
-    this.$nextTick(() => this.save());
+  }
+
+  @Emit() closeGameOver(): void {
+    this.seenWinner = true;
   }
 
   @Emit() hit(playerId: PlayerIdType, hitId: HitIdType): void {
@@ -250,7 +227,7 @@ export default class App extends Vue {
     this.save();
   }
 
-  save(): void {
+  @Emit() save(): void {
     const state = {
       playerHits: this.playerHits,
       timeline: this.timeline,
@@ -258,22 +235,23 @@ export default class App extends Vue {
     localStorage.setItem('cricket', JSON.stringify(state));
   }
 
-  selectTheme(idx: number): void {
+  @Emit() selectTheme(idx: number): void {
     this.themeIdx = idx;
     localStorage.setItem('theme', idx.toString());
   }
 
-  settings(): void {
+  @Emit() toggleSettings(): void {
     this.openSettings = !this.openSettings;
   }
 
-  undo(): void {
+  @Emit() undo(): void {
     if (!this.timeline.length) return;
     const entry = this.timeline.pop();
     if (!entry) return;
     const hitId: HitIdType = entry.hitId;
     const playerId: PlayerIdType = entry.playerId;
     const nextVal = this.playerHits[playerId][hitId] - 1;
+    this.seenWinner = false;
     this.$set(this.playerHits[playerId], hitId, nextVal);
     this.save();
   }
@@ -299,26 +277,30 @@ export default class App extends Vue {
 </script>
 
 <style lang="scss">
-$border: 5px;
-$font-size: 1rem;
-$font-size-large: 1.4em;
-$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-  Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+:root {
+  --border: 5px;
+  --font-size: 1em;
+  --font-size-large: 1.4em;
+  --font-size-display-large: 3em;
+  --font-size-display-small: 2em;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
 
 html,
 body {
   background: black;
   margin: 0;
   height: 100%;
-  font-size: $font-size;
+  font-size: var(--font-size);
   touch-action: none;
 }
 button {
   appearance: none;
   border: none;
   cursor: pointer;
-  font-family: $font-family;
-  font-size: $font-size;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
   font-weight: bold;
   outline: none;
 }
@@ -328,7 +310,7 @@ button {
   background: var(--color2);
   box-sizing: border-box;
   color: var(--color1);
-  font-family: $font-family;
+  font-family: var(--font-family);
   height: 100%;
   @media (min-height: 660px), (min-width: 660px) {
     padding: 1rem;
@@ -371,10 +353,10 @@ button {
 
   + .row {
     @media (orientation: portrait) {
-      border-top: $border solid var(--color3);
+      border-top: var(--border) solid var(--color3);
     }
     @media (orientation: landscape) {
-      border-left: $border solid var(--color3);
+      border-left: var(--border) solid var(--color3);
     }
   }
   .col,
@@ -400,7 +382,7 @@ button {
     flex: 1;
   }
   span.hit {
-    font-size: $font-size-large;
+    font-size: var(--font-size-large);
     font-weight: 900;
   }
   span.count {
@@ -414,7 +396,7 @@ button {
   font-weight: 900;
   .col-flex {
     flex-direction: row;
-    font-size: $font-size-large;
+    font-size: var(--font-size-large);
     padding: 1rem;
     &.winner {
       background: var(--accent);
@@ -422,7 +404,7 @@ button {
     @media (orientation: landscape) {
       flex-direction: column;
       + .col-flex {
-        border-top: $border solid var(--color2);
+        border-top: var(--border) solid var(--color2);
       }
       span:last-child {
         margin-top: auto;
@@ -430,7 +412,7 @@ button {
     }
     @media (orientation: portrait) {
       + .col-flex {
-        border-left: $border solid var(--color2);
+        border-left: var(--border) solid var(--color2);
       }
       span:first-child {
         text-align: left;
@@ -448,21 +430,10 @@ button {
   padding: 0;
   > div {
     padding: 0;
-    button {
-      background: var(--color1);
-      color: var(--color2);
-      display: block;
-      font-weight: 900;
-      padding: 1rem 0.5rem;
-      width: 100%;
-      border: none;
-      outline: none;
-      margin: 0;
-    }
   }
   @media (orientation: landscape) {
     > div + div {
-      border-top: $border solid var(--color2);
+      border-top: var(--border) solid var(--color2);
     }
     button {
       height: 100%;
@@ -470,113 +441,21 @@ button {
   }
   @media (orientation: portrait) {
     > div + div {
-      border-left: $border solid var(--color2);
+      border-left: var(--border) solid var(--color2);
     }
   }
 }
 
-.settings {
-  background: var(--color2);
-  box-sizing: border-box;
-  color: var(--color1);
-  font-weight: bold;
-  height: 100%;
-  left: 0;
-  padding: 1rem 1rem 1rem;
-  position: absolute;
-  top: 0;
-  transform: translateY(-100%);
-  transition: transform 250ms ease-in-out;
+button {
+  background: var(--color1);
+  color: var(--color2);
+  display: block;
+  font-size: var(--font-size-large);
+  font-weight: 900;
+  padding: 1rem 0.5rem;
   width: 100%;
-  z-index: 9;
-  p {
-    font-size: $font-size-large;
-    line-height: 3rem;
-    margin: 0 0 0rem;
-  }
-  &.active {
-    transform: translateY(0);
-  }
-  .close {
-    &::after {
-      content: '×';
-      left: 50%;
-      line-height: 0.8;
-      position: absolute;
-      top: 50%;
-      transform: translate(-50%, -50%);
-    }
-    display: block;
-    background: var(--accent);
-    color: var(--color2);
-    font-size: 1.5rem;
-    height: 3rem;
-    width: 3rem;
-    border-radius: 50%;
-    line-height: 3rem;
-    padding: 0;
-    position: absolute;
-    right: 1rem;
-    top: 1rem;
-  }
-  display: flex;
-  flex-direction: column;
-  @media (orientation: portrait) {
-    > div + div {
-      margin-top: 1rem;
-    }
-  }
-  .row-examples {
-    display: flex;
-    flex-direction: column;
-    @media (orientation: landscape) {
-      flex-direction: row;
-      width: 100px;
-    }
-  }
-  @media (orientation: landscape) {
-    flex-direction: row;
-    > div {
-      .row-examples,
-      ul {
-        flex: 1;
-      }
-      ul {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      width: calc(50% - 0.5rem);
-      + div {
-        margin-left: 1rem;
-      }
-    }
-  }
-  .themes {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    @media (orientation: portrait) {
-      margin-top: 1rem;
-    }
-    li {
-      border: $border solid transparent;
-      display: flex;
-      + li {
-        margin-top: 0.5rem;
-      }
-      &.active {
-        border-color: var(--accent);
-      }
-      span {
-        display: block;
-        height: 30px;
-        width: 25%;
-      }
-    }
-  }
+  border: none;
+  outline: none;
+  margin: 0;
 }
 </style>
