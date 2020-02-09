@@ -208,7 +208,7 @@ export default class App extends Vue {
         }
       }
       this.seenWinner = false;
-      this.$set(this, 'timeline', []);
+      while (this.timeline.length) this.timeline.pop();
       this.$nextTick(() => this.save());
     }
   }
